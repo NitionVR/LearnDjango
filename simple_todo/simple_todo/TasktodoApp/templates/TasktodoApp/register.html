@@ -13,9 +13,9 @@
   <div class="wrapper">
     <h2>Register</h2><br>
     {% if messages %}
-      {% for message in messages %}
-        <h2 style="color: #b22222;">{{message}}</h2>
-      {% endfor %}
+        {% for message in messages %}
+        <h2 style="color: firebrick;">{{message}}</h2>
+        {% endfor %}
     {% endif %}
     <form action="#" method="POST">
       {% csrf_token %}
@@ -34,7 +34,7 @@
         <input type="Submit" value="Register">
       </div>
       <div class="text">
-        <h3>Don't have an account? <a href="#">Register now</a></h3>
+        <h3>Already have an account? <a href="{%url 'login' %}">Login</a></h3>
       </div>
       <div class="text">
         <h3>Forgot Password? <a href="#">Reset</a></h3>
