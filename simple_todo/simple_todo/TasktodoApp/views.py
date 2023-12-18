@@ -8,9 +8,15 @@ from .models import Tasktodo
 #create home function
 def home(request):
     if request.method == "POST":
-        task = request.POST.get('task')
-        new_todo = Tasktodo(user=request.user,todo_name = task)                                              
-    return render(request,"TasktodoApp/Tasktodo.html", {})
+        task = request.POST.get("task")
+        new_todo = Tasktodo(user=request.user,todo_name = task)
+        new_todo.save()
+
+    all_todos = Tasktodo.objects.filter(user=request.user)  # get all todos user has entered
+    context = {
+        'todos':all_todos
+    }
+    return render(request,"TasktodoApp/Tasktodo.html", context)
 
 #create register function
 def register(request):
@@ -48,3 +54,14 @@ def loginpage(request):
             return redirect("login")
 
     return render(request,"TasktodoApp/login.html", {})
+
+def delete_task(request,name):
+    get_todo = Tasktodo.objects.get(user=request.user, todo_name=name)
+    get_todo.delete()
+    return redirect("home-page")
+
+def update(request,name):
+    get_todo = Tasktodo.objects.get(user=request.user, todo_name=name)
+    get_todo.status = True
+    get_todo.save()
+    return redirect("home-page")
