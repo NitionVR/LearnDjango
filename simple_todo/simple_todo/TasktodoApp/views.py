@@ -3,14 +3,17 @@ from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from .models import Tasktodo
+from django.contrib.auth.decorators import login_required
 # Create your views here.
 
 #create home function
+@login_required
 def home(request):
     if request.method == "POST":
         task = request.POST.get("task")
-        new_todo = Tasktodo(user=request.user,todo_name = task)
-        new_todo.save()
+        if task:
+            new_todo = Tasktodo(user=request.user,todo_name = task)
+            new_todo.save()
 
     all_todos = Tasktodo.objects.filter(user=request.user)  # get all todos user has entered
     context = {
@@ -20,13 +23,16 @@ def home(request):
 
 #create register function
 def register(request):
+    if request.user.is_authenticated:
+        return redirect("home-page")
+    
     if request.method == "POST":                                    # Checks if request that is sent is POST
         username = request.POST.get("username")                     # Gets the username, from the form, using id of the buttom 
         email = request.POST.get("email")                           # Gets the email
         password = request.POST.get("password")                     # Gets the password
         
         if len(password) < 8:
-            messages.error(request, "Password must be at least 8 characters")
+            messages.error(request, "Password must be consist of at least 8 characters.")
             return redirect("register")
         
         get_all_usernames = User.objects.filter(username)
@@ -39,7 +45,11 @@ def register(request):
         new_user.save()                                                 # Save user
     return render(request,"TasktodoApp/register.html", {})
 
+
 def loginpage(request):
+    if request.user.is_authenticated:
+        return redirect("home-page")
+    
     if request.method == "POST":
         username = request.POST.get("uname")
         password = request.POST.get("pass")
@@ -55,10 +65,17 @@ def loginpage(request):
 
     return render(request,"TasktodoApp/login.html", {})
 
+
+def logout_user(request):
+    logout(request)
+    return redirect("login")
+
+
 def delete_task(request,name):
     get_todo = Tasktodo.objects.get(user=request.user, todo_name=name)
     get_todo.delete()
     return redirect("home-page")
+
 
 def update(request,name):
     get_todo = Tasktodo.objects.get(user=request.user, todo_name=name)
