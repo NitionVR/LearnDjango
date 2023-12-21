@@ -1,69 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+
 <head>
-    <script src="//d.bablic.com/snippet/6288d4c3c4c5800001a91242.js?version=3.9"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Tracker</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
 </head>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js" integrity="sha384-QJHtvGhmr9XOIpI6YVutG+2QOK9T+ZnN4kzFN1RtK3zEFEIsxhlmWl5/YESvpZ13" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-fQybjgWLrvvRgtW6bFlB7jaZrFsaBXjsOMm/tB9LTS58ONXgqbR9W8oWht/amnpF" crossorigin="anonymous"></script>
 
-<section class="vh-100" style="background-color: #64b88e;">
-    <div class="container py-5 h-100">
-      <div class="row d-flex justify-content-center align-items-center h-100">
-        <div class="col col-lg-9 col-xl-7">
-          <div class="card rounded-3">
-            <div class="card-body p-4">
-  
-              <h4 class="text-center my-3 pb-3">Task Tracker</h4>
-              <div class="d-flex justify-content-end">
-                <a href="{% url 'logout' %}"><button type="submit" style="background: firebrick; color: white; font-size: 0.8rem; padding: 0.2rem 0.5rem;"class="btn btn-primary">Logout</button></a>
-              </div>
-              
-              <form method="POST" class="row row-cols-lg-auto g-3 justify-content-center align-items-center mb-4 pb-2">
-                {%csrf_token %}
-                <div class="col-12">
-                  <div class="form-outline">
-                    <input type="text" id="form1" class="form-control" name="task" placeholder="Enter a task here"/>
-                  </div>
+<body>
+    {% load avatar_tags %}
+    <section class="top-section">
+        <div class="container">
+            <div class="row justify-content-end">
+                <div class="col-md-4 text-end">
+                    <div class="card user-info">
+                        <img src="{% avatar_url user 32 %}" alt="User Avatar" class="avatar card-img-top">
+                        <div class="card-body text-center">
+                            <a href="{% url 'logout' %}" class="btn btn-primary">Logout</a>
+                        </div>
+                    </div>
                 </div>
-  
-                <div class="col-12">
-                  <button type="submit" class="btn btn-primary">Add Task</button>
-                </div>
-              </form>
-              
-              <table class="table mb-4">
-                <thead>
-                  <tr>
-                    <th scope="col">Todo item</th>
-                    <th scope="col">Status</th>
-                    <th scope="col">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% for i in todos %}
-                  <tr>
-                    <td>{{i.todo_name}}</td>
-
-                    {% if i.status == True %}
-                      <td>Completed</td>
-                    {% else %}
-                      <td>In progress</td>
-                    {% endif %}
-
-                    <td>
-                      {% if i.todo_name %}
-                        <a href="{% url 'delete' i.todo_name %}"><button type="submit" class="btn btn-danger">Delete</button></a>
-                        <a href="{% url 'update' i.todo_name%}"><button type="submit" class="btn btn-success ms-1">Finished</button></a>
-                      {% endif %}
-
-                    </td>
-                  </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-  
             </div>
-          </div>
         </div>
-      </div>
+    </section>
+
+    <div class="wrapper">
+        <div class="row justify-content-center align-items-center h-100">
+            <div class="col-md-4">
+                <div class="card mb-4">
+                    <div class="card-body ">
+                        <h5 class="card-title text-center">To Do</h5>
+                        <ul id="sortableToDo" class="list-group connectedSortable">
+                            {% for i in todos %}
+                                {% if not i.status %}
+                                    <li class="list-group-item draggable" data-id="{{ i.id }}">{{ i.todo_name }}</li>
+                                {% endif %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title text-center">In Progress</h5>
+                        <ul id="sortableInProgress" class="list-group connectedSortable">
+                            {% for i in todos %}
+                                {% if i.status == 'in_progress' %}
+                                    <li class="list-group-item draggable" data-id="{{ i.id }}">{{ i.todo_name }}</li>
+                                {% endif %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title text-center">Completed</h5>
+                        <ul id="sortableCompleted" class="list-group connectedSortable">
+                            {% for i in todos %}
+                                {% if i.status == 'completed' %}
+                                    <li class="list-group-item draggable" data-id="{{ i.id }}">{{ i.todo_name }}</li>
+                                {% endif %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-  </section>
+
+    <script>
+        $(document).ready(function () {
+            $('.user-info').popover({
+                container: 'body',
+            });
+
+            $(".draggable").draggable({
+                helper: 'clone',
+                revert: 'invalid',
+                appendTo: 'body',
+                zIndex: 1000,
+            });
+
+            $(".connectedSortable").sortable({
+                connectWith: ".connectedSortable",
+                placeholder: "ui-state-highlight",
+                update: function (event, ui) {
+                    // Handle update event
+                    var todoId = ui.item.data("id");
+                    var newStatus = ui.item.parent().data("status");
+
+                    // Update the status of the todo item via AJAX or other method
+                    console.log("Todo ID:", todoId, "New Status:", newStatus);
+                },
+            }).disableSelection();
+        });
+    </script>
+
+    <style>
+        body {
+            background-color: white;
+            color: rgb(213, 230, 218);
+            font-family: Tahoma;
+            font-size: 16px;
+            margin-top: auto;
+        }
+
+        .top-section {
+            background-color:  #64a54acb;
+            color: rgb(5, 5, 5);
+            padding: 35px;
+            height: 30px;
+        }
+
+        .wrapper {
+            max-width: 1000px;
+            width: 100%;
+            background: #64a54acb;
+            padding: 34px;
+            border-radius: 6px;
+            box-shadow: 0 5px 10px rgba(170, 107, 107, 0.2);
+            margin: 50px auto;
+        }
+
+        .user-info {
+            cursor: pointer;
+        }
+        .card-title{
+          color:#1d1b1b;
+        }
+        
+        .avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+        }
+        
+        .user-info{
+          width:200px;
+          background-color:  #64a54acb;
+
+        } 
+        .card-body{
+          border-radius:10px;
+        }
+        .list-group-item {
+            color: #ffffff;
+            background: #00691b;
+            border-radius: 10px;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+            margin-top: 4px;
+        }
+    </style>
+
+</body>
+
+</html>
+
+

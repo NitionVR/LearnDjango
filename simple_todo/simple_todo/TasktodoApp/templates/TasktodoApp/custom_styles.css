@@ -1,0 +1,14 @@
+.wrapper{
+    position: center;
+    max-width: 1000px;
+    width: 100%;
+    background: #45bb68;
+    padding: 34px;
+    border-radius: 6px;
+    box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+    margin: 100px;
+  }
+  
+.card-title{
+    color: #333
+   }

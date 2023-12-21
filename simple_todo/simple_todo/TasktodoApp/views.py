@@ -4,22 +4,28 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from .models import Tasktodo
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.urls import reverse
+from django.views.decorators.csrf import csrf_exempt
+from django.db import transaction
 # Create your views here.
 
 #create home function
+@login_required
 @login_required
 def home(request):
     if request.method == "POST":
         task = request.POST.get("task")
         if task:
-            new_todo = Tasktodo(user=request.user,todo_name = task)
+            new_todo = Tasktodo(user=request.user, todo_name=task)
             new_todo.save()
+            return redirect(reverse("home-page"))
 
-    all_todos = Tasktodo.objects.filter(user=request.user)  # get all todos user has entered
-    context = {
-        'todos':all_todos
-    }
-    return render(request,"TasktodoApp/Tasktodo.html", context)
+    # Retrieve tasks in the correct order based on the order_index field
+    all_todos = Tasktodo.objects.filter(user=request.user).order_by('order_index')
+
+    context = {'todos': all_todos}
+    return render(request, "TasktodoApp/Tasktodo.html", context)
 
 #create register function
 def register(request):
@@ -69,6 +75,28 @@ def loginpage(request):
 def logout_user(request):
     logout(request)
     return redirect("login")
+
+
+@csrf_exempt
+def update_task_order(request):
+    if request.method == "POST":
+        new_order = request.POST.get('new_order').split(',')
+        try:
+            with transaction.atomic():
+                # Iterate over the received order and update the order_index for each task
+                for index, todo_id in enumerate(new_order):
+                    task = Tasktodo.objects.get(id=todo_id, user=request.user)
+                    task.order_index = index
+                    task.save()
+
+            return JsonResponse({'status': 'success'})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)})
+
+    else:
+        return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
+
+
 
 
 def delete_task(request,name):

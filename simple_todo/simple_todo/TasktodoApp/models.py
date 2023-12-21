@@ -5,6 +5,7 @@ class Tasktodo(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     todo_name = models.CharField(max_length = 1000)
     status = models.BooleanField(default=False)
+    order_index = models.IntegerField(default=0)
 
     def __str__(self):
         return self.todo_name
